@@ -1,0 +1,11 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+<div class="container" ng-if="isMaster">
+	<ul class="nav nav-tabs">
+	  <li role="presentation" ng-class="{active: isActive('settings.password')}"><a href="/settings/password">Change Password</a></li>
+	  <li role="presentation" ng-class="{active: isActive('settings.module')}"><a href="/settings/module">Create Modules</a></li>
+	  <li role="presentation" ng-class="{active: isActive('settings.resource')}"><a href="/settings/resource">Create Resources</a></li>
+	  <li role="presentation" ng-class="{active: isActive('settings.webhook')}"><a href="/settings/webhook">Create Web hooks</a></li>
+	</ul>
+</div>
+<br>
+<div class="container" ui-view></div>

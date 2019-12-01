@@ -1,0 +1,188 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+<!--***************ADMIN HOME********************-->
+<div ng-if="isAdmin()" class="container">
+	<div class="card" style="min-height:20vh;border-top:2px solid;border-top-color: #c1c1c1">
+		<h6>REQUESTED RESOURCE PERMISSIONS</h6>
+		<hr>
+		<div class="center" ng-if="loader">
+			<img src="assets/images/loader.gif" alt="Loading..." width="20"> LOADING...
+		</div>
+		<div ng-repeat="request in requests">
+			<span><b>{{request.name.toUpperCase()}}</b></span>
+			<table class="table table-condensed">
+				<tr ng-repeat="(resource,val) in request.resources">
+					<td>{{resource}}</td>
+					<td><code ng-repeat="(perm, method) in val">{{perm}} - {{method.join(', ').toUpperCase()}}<br></code></td>
+					<td><button class="btn btn-xs btn-success" ng-click="accept($parent.$index, request._id, resource)">ACCEPT</button></td>
+					<td><textarea ng-model="reason"></textarea><br><button class="btn btn-xs btn-danger" ng-click="reject($parent.$index, request._id, resource, reason)">REJECT</button></td>
+				</tr>
+			</table>
+		</div>
+		<div ng-if="requests.length==0">No requests to be found.</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-6 text-center">
+			<select ng-model="days" ng-change="getResponseTimeAdmin(days)">
+				<option value="1" ng-selected="true">1 day</option>
+				<option value="2">2 days</option>
+				<option value="3">3 days</option>
+				<option value="4">4 days</option>
+				<option value="5">5 days</option>
+			</select>
+			<highchart id="requestvsresponse" config="requestvsresponse"></highchart>
+		</div>
+		<div class="col-sm-3">
+			<table class="table table-condensed table-bordered">
+				<caption align="bottom">for last 30 days</caption>
+				<tr class="bg-info">
+					<th>User</th>
+					<th>API Calls</th>
+				</tr>
+				<tr ng-repeat="user in userShare">
+					<td>{{user.name[0]}}</td>
+					<td>{{user.count}}</td>
+				</tr>
+			</table>
+		</div>
+		<div class="col-sm-3">
+			<table class="table table-condensed table-bordered">
+				<caption align="bottom">for last 30 days</caption>
+				<tr class="bg-info">
+					<th>API</th>
+					<th>Requests</th>
+				</tr>
+				<tr ng-repeat="scope in scopeShare">
+					<td>{{scope._id}}</td>
+					<td>{{scope.count}}</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>
+<!--***********************************************-->
+
+<!--***************USER HOME***********************-->
+<div ng-if="isLoggedIn() && !isAdmin()" class="container">
+	<div class="col-md-6">
+		<div class="col-md-12 card bg-light-blue">
+			<div class="col-xs-8">
+				<h4><span class="glyphicon glyphicon-user"></span> {{user.name}}</h4>
+				<h6>Client ID: <b>{{user.client_id}}</b></h6>
+				<h6>Email: <b>{{user.email}}</b></h6>
+				<h6>Account Status: <span ng-if="user.service_status==true"><b>Activated</b></span><span ng-if="!user.service_status"><b>Deactivated</b></span></h6>
+			</div>
+			<div class="col-xs-4 text-center">
+				<h1>{{apiCallCount}}</h1>
+				<h6>Monthly API calls</h6>
+			</div>
+		</div>
+		<div class="card col-md-12">
+			<h6>AVAILABLE RESOURCES</h6>
+			<hr>
+			<select name="mod_name" ng-model="moduleId" ng-change="selectModule(moduleId)" class="form-control">
+        	    <option ng-repeat="module in modules" value="{{module._id}}">{{module.name}}</option>
+          	</select>
+			<table class="table table-condensed table-bordered" ng-init="selected={}">
+				<tr ng-repeat="resource in resources" id="api-{{$index}}">
+					<td><span class="glyphicon glyphicon-cog"></span> {{resource.name}}</td>
+					<td>
+						<label class="checkbox-inline" ng-if="resource.endpoints.indexOf('get')!=-1">
+			                <input type="checkbox" id="inlineCheckbox1" name="opt" value="GET" ng-model="selected[module_name][resource.name].get" ng-click="toggleClass($index, selected[module_name][resource.name])"> GET
+						</label>
+						<label class="checkbox-inline" ng-if="resource.endpoints.indexOf('post')!=-1">
+			                <input type="checkbox" id="inlineCheckbox1" name="opt" value="POST" ng-model="selected[module_name][resource.name].post" ng-click="toggleClass($index,selected[module_name][resource.name])"> POST
+						</label>
+						<label class="checkbox-inline" ng-if="resource.endpoints.indexOf('put')!=-1">
+			                <input type="checkbox" id="inlineCheckbox1" name="opt" value="PUT" ng-model="selected[module_name][resource.name].put" ng-click="toggleClass($index,selected[module_name][resource.name])"> PUT
+						</label>
+						<label class="checkbox-inline" ng-if="resource.endpoints.indexOf('delete')!=-1">
+			                <input type="checkbox" id="inlineCheckbox1" name="opt" value="DELETE" ng-model="selected[module_name][resource.name].delete" ng-click="toggleClass($index,selected[module_name][resource.name])"> DELETE
+						</label>
+					</td>
+				</tr>
+			</table>
+			<div class="text-center"><button class="btn btn-sm btn-primary" ng-click="requestAccess(selected, moduleId)">Request Access</button></div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card" style="min-height:20vh;border-top:2px solid;border-top-color: #c1c1c1;max-height:40vh;">
+			<h6>REQUESTED RESOURCE PERMISSIONS</h6>
+			<hr>
+			<table class="table table-condensed">
+				<tr class="danger" ng-if="val.request" ng-repeat="(resource,val) in user.resources">
+					<td><span class="glyphicon glyphicon-cog"></span> {{resource}}</td>
+					<td style="text-align:center;font-size:10px;">
+						<span ng-show="['apiKey','request'].indexOf(perm)==-1" ng-repeat="(perm,method) in val">{{perm}} - {{method.join(', ').toUpperCase()}}<br></span>
+					</td>
+					<td><button class="btn btn-xs btn-danger pull-right" ng-click="cancelRequest(resource)">Cancel Request</button></td>
+				</tr>
+			</table>
+		</div>
+		<div class="card" style="min-height:20vh;max-height:40vh;overflow:auto;">
+			<h6>ACTIVE RESOURCE PERMISSIONS</h6>
+			<hr>
+			<table class="table table-condensed">
+				<tr ng-class="user.activated_apiKeys.indexOf(val.apiKey)>-1?'success':'warning'" ng-if="!val.request" ng-repeat="(resource,val) in user.resources">
+					<td><span class="glyphicon glyphicon-cog"></span> {{resource}}</td>
+					<td style="text-align:center;font-size:10px;">
+						<span ng-show="['apiKey','request'].indexOf(perm)==-1" ng-repeat="(perm,method) in val">{{perm}} - {{method.join(', ').toUpperCase()}}<br></span>
+					</td>
+					<td>
+						<span ng-if="user.activated_apiKeys.indexOf(val.apiKey)>-1" class="pull-right"><img src="assets/images/greenspot.png" width="15" height="15" style="vertical-align:middle;"/> Running</span>
+						<span ng-if="user.activated_apiKeys.indexOf(val.apiKey)==-1" class="pull-right"><img src="assets/images/redspot.png" width="15" height="15" style="vertical-align:middle;"/> Stopped</span>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div class="card" style="min-height:20vh;max-height:40vh;overflow:auto;">
+			<h6>API KEYS</h6>
+			<hr>
+			<table class="table table-condensed">
+				<tr ng-if="!val.request" ng-repeat="(resource,val) in user.resources">
+					<td style="white-space:nowrap;"><span class="glyphicon glyphicon-cog"></span> {{resource}}</td>
+					<td>
+						<div class="input-group">
+							<input type="text" value="{{viewKey(val.apiKey)}}" class="form-control input-xs" readonly id="key-{{$index}}">
+							<div class="input-group-btn" ng-if="val.apiKey">
+								<button class="btn btn-xs btn-default" uib-tooltip="copy to clipboard." tooltip-placement="bottom" tooltip-trigger="mouseenter" style="cursor:pointer;" ng-click="copy('key-'+$index)"><span class="glyphicon glyphicon-new-window"></span></button>
+							</div>
+						</div>
+					</td>
+					<td>
+						<button ng-if="val.apiKey" class="btn btn-xs btn-success pull-right" ng-click="generateKey(resource)">Regenerate</button>
+						<button ng-if="!val.apiKey" class="btn btn-xs btn-primary pull-right" ng-click="generateKey(resource)">Generate</button>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>
+<!--***********************************************-->
+
+
+<script type="text/ng-template" id="userVerification.html">
+    <div class="modal-header">
+        <h3 class="modal-title">Enter Password</h3>
+    </div>
+    <div class="modal-body">
+    <form name="passwordForm">
+       <div class="form-group">
+          <label>Password</label>
+
+          <input type="password" name="password" class="form-control" ng-model="password" required>
+        </div>
+
+        <div class="form-group has-error">
+          <p class="help-block" ng-show="passwordForm.password.$error.required && submitted">
+             Please enter your email and password.
+          </p>
+          <p class="help-block">{{ errors.other }}</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" type="button" ng-click="ok(passwordForm)">OK</button>
+        <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+    </div>
+</script>
+
+  

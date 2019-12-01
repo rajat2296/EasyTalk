@@ -1,0 +1,47 @@
+<div class="navbar navbar-default navbar-static-top" ng-controller="NavbarCtrl">
+  <div class="container">
+    <div class="navbar-header">
+      <button class="navbar-toggle" type="button" ng-click="isCollapsed = !isCollapsed">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a href="/" class="navbar-brand"><img src="assets/images/brand-logo.png" width="70%"/></a>
+    </div>
+    <div collapse="isCollapsed" class="navbar-collapse collapse" id="navbar-main">
+      <ul class="nav navbar-nav navbar-right">
+        <li ng-hide="isLoggedIn()" ng-class="{active: isActive('signup')}"><a href="/signup">Sign up</a></li>
+        <li ng-show="isLoggedIn()" ng-class="{active: isActive('/logout')}"><a href="" ng-click="logout()">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="sidebar" ng-show="isLoggedIn()">
+    <ul>
+      <li ng-show="isLoggedIn()" ng-class="{active: isActive('home')}">
+        <a href="/home"><span class="glyphicon glyphicon-home"></span><br>Home</a>
+      </li>
+      <li ng-show="isAdmin()" ng-class="{active: isActive('resources')}">
+        <a href="/resources"><span class="glyphicon glyphicon-cloud"></span><br>API</a>
+      </li>
+      <li ng-show="isAdmin()" ng-class="{active: isActive('clients')}">
+        <a href="/clients"><span class="glyphicon glyphicon-user"></span><br>Clients</a>
+      </li>
+      <li ng-show="isLoggedIn()" ng-class="{active: isActive('logs')}">
+        <a href="/logs"><span class="glyphicon glyphicon-inbox"></span><br>Logs</a>
+      </li>
+      <li ng-show="isLoggedIn()" ng-class="{active: isActive('webhooks')}">
+        <a href="/webhooks"><span class="glyphicon glyphicon-retweet"></span><br>Web Hooks</a>
+      </li>
+      <li ng-show="isLoggedIn()" ng-class="{active: isActive('docs')}">
+        <a href="/docs/getting_started"><span class="glyphicon glyphicon-file"></span><br>Docs</a>
+      </li>
+      <li ng-show="getCurrentUser().role === 'user'" ng-class="{active: isActive('test')}">
+        <a href="/test"><span class="glyphicon glyphicon-list-alt"></span><br>Test</a>
+      </li>
+      <li ng-show="isLoggedIn()" ng-class="{active: isActive('settings')}">
+        <a href="/settings/password"><span class="glyphicon glyphicon-cog"></span><br>Settings</a>
+      </li>
+    </ul>
+  </div>
+</div>

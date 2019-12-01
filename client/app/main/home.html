@@ -1,0 +1,17 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+<!--***************ADMIN HOME********************-->
+
+<div class="row">
+	<div class="col-md-6">
+		<h3>USERS</h3>
+		<table class="table table-condensed">
+			<tr ng-repeat="user in users">
+				<td>{{user.name}}</td>
+				<td><button class="btn btn-primary btn-xs" ng-click="startNewCall(currentUser, user)"></td>
+			</tr>		
+		</table>		
+	</div>		
+</div>		
+	
+
+

@@ -1,0 +1,58 @@
+<div class="card col-sm-6">
+  <h6>CREATE WEBHOOK</h6>
+  <hr>
+  <form class="form" name="webhookForm" ng-submit="addWebHook(webhookForm, event);" novalidate>
+    <div class="form-group">
+      <label>Event Display Name</label>
+      <input type="name" name="displayname" class="form-control" ng-model="event.event_displayName" required>
+      <p class="help-block" ng-show="webhookForm.displayName.$error.required && submitted_webhook" style="color:#a94442;">
+         Please provide Webhook display name.
+      </p>
+    </div>
+    <div class="form-group">
+      <label>Event Unique Name</label>
+      <input type="name" name="name" class="form-control" ng-model="event.event_name" required>
+      <p class="help-block" ng-show="webhookForm.name.$error.required && submitted_webhook" style="color:#a94442;">
+         Please provide Webhook name.
+      </p>
+    </div>
+    <div class="form-group">
+      <label>Event Description</label>
+      <textarea type="name" name="desc" class="form-control" ng-model="event.description" required></textarea>
+      <p class="help-block" ng-show="webhookForm.desc.$error.required && submitted_webhook" style="color:#a94442;">
+         Please provide webhook description.
+      </p>
+    </div>
+    <div class="form-group">
+      <label>Method</label>
+      <select name="method" class="form-control" ng-model="event.method" required>
+        <option value="get">GET</option>
+        <option value="post">POST</option>
+        <option value="put">PUT</option>
+        <option value="delete">DELETE</option>
+      </select>
+      <p class="help-block" ng-show="webhookForm.method.$error.required && submitted_webhook" style="color:#a94442;">
+         Please provide webhook method.
+      </p>
+    </div>
+    <div class="form-group">
+      <label>User Group Permission</label>
+      <select name="user_group" class="form-control" ng-model="event.user_group" required>
+        <option value="alpha">ALPHA</option>
+        <option value="beta">BETA</option>
+        <option value="gamma">GAMMA</option>
+      </select>
+      <p class="help-block" ng-show="webhookForm.user_group.$error.required && submitted_webhook" style="color:#a94442;">
+         Please provide webhook user group.
+      </p>
+    </div>
+    <div>
+      <button class="btn btn-inverse btn-lg btn-login" type="submit">
+        Add
+      </button>
+      <br><br>
+      <div class="bg-danger">{{errorModule}}</div>
+      <div class="bg-success" ng-if="successWebhook">New webhook is created.</div>
+    </div>
+  </form>
+</div>

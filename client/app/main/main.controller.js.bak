@@ -1,0 +1,245 @@
+'use strict';
+
+angular.module('angFullstackApp').controller('MainCtrl', function ($scope, $location, authentication) {
+	
+	$scope.authenticated = true;
+	authentication.$promise.then(function(data){
+		$location.path('/home');
+	}).catch(function(err){
+		$scope.authenticated = false;
+		$scope.stuff = [
+			'Connect to restaurants on a global scale.',
+			'Build, grow and monetize your apps with POSist.',
+			'Sign up to start a revolution in the restaurant industry.'
+		];
+	});
+
+}).controller('HomeCtrl', function ($scope, $http, $state, $uibModal, Auth, Resources, User, Modules, Logs) {
+	  $scope.user;
+	  $scope.loader=false;
+	  $scope.module_name='';
+	  
+	  /*******************User Functions*****************/		
+	  $scope.getModules = function(){
+	  	$scope.loader=true;
+	  	Modules.get().success(function(data){
+	  		$scope.loader=false;
+	  		$scope.modules = data;
+	  		$scope.selectModule($scope.modules[0]._id);
+	  		$scope.moduleId = $scope.modules[0]._id;
+	  	}).error(function(err){
+	  		alert("Some error occurred. Please refresh.");
+	  	});
+	  };
+
+	  $scope.getResources = function(id){
+	  	Resources.getByModule(id).success(function(data){
+	  		$scope.loader=false;
+	  		$scope.resources = data;
+	  	}).error(function(err){
+	  		alert("Some error occurred. Please refresh.");
+	  	});
+	  };
+
+	  $scope.selectModule = function(id){
+	  	$scope.getResources(id);
+	  	for (var i = $scope.modules.length - 1; i >= 0; i--) {
+	  		if(id==$scope.modules[i]._id){
+	  			$scope.module_name=$scope.modules[i].name;
+	  			break;
+	  		}
+	  	};
+	  };
+
+	  $scope.viewKey = function(key){
+	  	if(key)
+	  		return btoa($scope.user.client_id+":"+key);
+	  	else
+	  		return 'None';
+	  };
+
+	  $scope.copy = function(id){
+	  	var copyTextarea = document.getElementById(id);
+  		copyTextarea.select();
+	  	document.execCommand('copy');
+	  };
+	  
+	  $scope.requestAccess = function(selected, moduleId){
+	  	var module;var resources={};
+	  	for(var i=0;i<$scope.modules.length;i++){
+	  		if($scope.modules[i]._id==moduleId){
+	  			module = $scope.modules[i].name;
+	  		}
+	  	}
+	  	resources[module] = angular.copy(selected[module]);
+	  	//this code changes object (selected properties) to array
+	  	//console.log(selected);
+  		for(var perm in selected[module]){
+  			if(typeof selected[module][perm] === 'object'){
+  				resources[module][perm] = [];
+  				for(var method in selected[module][perm])
+  					if(selected[module][perm][method]) resources[module][perm].push(method);
+  				if(resources[module][perm].length==0)
+  					delete resources[module][perm];
+  			}
+  		}
+  		
+	  	User.updateResources({id: $scope.user._id}, resources, function(data){
+	  		$scope.user.resources = data;
+	  	}, function(err){
+	  		alert('Some error occurred. Please refresh.');
+	  	});
+	  };
+
+	  $scope.cancelRequest = function(resource){
+	  	delete $scope.user.resources[resource];
+	  	var obj = {};obj[resource]={};
+	  	User.updateResources({id: $scope.user._id, api: resource}, obj, function(data){
+	  		$scope.user.resources = data;
+	  	}, function(err){
+	  		alert('Some error occurred. Please refresh.');
+	  	});
+	  };
+
+	  $scope.toggleClass = function(index, resource){
+	  	for(var key in resource){
+	  		if(resource[key] == true){
+	  			angular.element(document.getElementById('api-'+index)).toggleClass('info',true);
+	  			break;
+	      	}else{
+	      		angular.element(document.getElementById('api-'+index)).toggleClass('info',false);
+	      	}
+	  	}
+	  };
+
+	  $scope.generateKey = function(resource){
+	  	var modalInstance = $uibModal.open({
+	        templateUrl: 'userVerification.html',
+	        animation:true,
+	        scope: $scope,
+	        controller: 'UserVerifyCtrl'
+	      });
+	  	modalInstance.result.then(function (result) {
+	      if(result){
+	      	User.updateResources({id: $scope.user._id, generateKey: resource}, {}, function(data){
+	      		$scope.user.resources = data.resources;
+	      		$scope.user.activated_apiKeys = data.activated_apiKeys;
+	      	}, function(err){
+	      		alert('Some error occurred. Please refresh.');
+	      	});
+	      }
+	    }, function () {
+	      //do nothing
+	    });
+	  };
+	  /**************************************************************/
+
+	  /***********************Admin Functions************************/
+
+	  $scope.accept = function(index, id, api){
+	  	$http.put('/api/users/requests/accept', {id: id,api: api}).success(function(data){
+	  		delete $scope.requests[index].resources[api];
+	  	}).error(function(err){
+	  		alert('Some error occurred. Please refresh.');
+	  	});
+	  };
+
+	  $scope.reject = function(index, id, api, reason){
+	  	if(reason==null||reason=='')
+	  		alert("Please give a reason before rejecting.");
+	  	else{
+		  	$http.put('/api/users/requests/reject', {id: id,api: api, reason:reason}).success(function(data){
+		  		delete $scope.requests[index].resources[api];
+		  	}).error(function(err){
+		  		alert('Some error occurred. Please refresh.');
+		  	});
+		}
+	  };
+	$scope.monthChanged=function(month){
+      Logs.adminRequestShareByUser(month).success(function(data){
+        $scope.userShare = data;
+      });
+      Logs.adminRequestShareByScope(month).success(function(data){
+        $scope.scopeShare = data;
+      });
+    }
+	$scope.getResponseTimeAdmin = function(days){
+	  	Logs.responseTimeAdmin(days).success(function(data){
+			$scope.requestvsresponse = angular.copy(Logs.scopevsresponse);
+			$scope.requestvsresponse.series = data.series;
+		});
+	};
+	  /*************************INIT********************************/
+		User.get().$promise.then(function(data){
+			$scope.loader = true;
+			$scope.isLoggedIn = Auth.isLoggedIn;    
+			$scope.isAdmin = Auth.isAdmin;
+			$scope.user = data;
+			var data = angular.copy(data.resources);
+			for(var module in data){
+				for(var resource in data[module]){
+				  if(Array.isArray(data[module][resource])){
+				    var obj={};
+				    data[module][resource].forEach(function(method){obj[method]=true;});
+				    data[module][resource] = obj;
+				  }
+				}
+			}
+			$scope.selected = data;
+			if($scope.isLoggedIn() && !$scope.isAdmin()){
+				$scope.getModules();
+				Logs.getUserCallCount().success(function(data){
+					$scope.apiCallCount = Number(data.success)+Number(data.failure);
+					$scope.loader = false; 
+				}).error(function(err){
+					$scope.apiCallCount = 0;
+				});
+			}else if($scope.isLoggedIn() && $scope.isAdmin()){
+				
+				$http.get('/api/users/requests').success(function(data){
+					$scope.requests = data;
+					$scope.loader = false;
+				}).error(function(err){
+					alert('Some error occurred. Please refresh.');
+				});
+				Logs.responseTimeAdmin(1).success(function(data){
+					$scope.requestvsresponse = angular.copy(Logs.scopevsresponse);
+					$scope.requestvsresponse.series = data.series;
+				});
+				Logs.adminRequestShareByUser(0).success(function(data){
+					$scope.userShare = data;
+				});
+				Logs.adminRequestShareByScope(0).success(function(data){
+			        $scope.scopeShare = data; 
+			    });
+			}
+		}).catch(function(){
+			console.log('Please login to continue.');
+		});	
+		
+}).controller('UserVerifyCtrl', function ($scope, $uibModalInstance, Auth) {
+ 
+	    $scope.errors = {};
+	    $scope.submitted = false;
+	    $scope.ok = function(form) {
+	      $scope.submitted = true;
+
+	      if(form.$valid) {
+	        Auth.login({
+	          email: $scope.user.email,
+	          password: $scope.password
+	        })
+	        .then( function(data) {
+	          $uibModalInstance.close(true);
+	        })
+	        .catch( function(err) {
+	          $scope.errors.other = err.message;
+	          $uibModalInstance.close(false);
+	        });
+	      }
+	    };
+
+	    $scope.cancel = function(){
+	    	$uibModalInstance.dismiss('cancel');
+	    };
+  });

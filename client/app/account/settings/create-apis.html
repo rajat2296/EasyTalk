@@ -1,0 +1,56 @@
+<div class="card col-sm-6" ng-init="getModules()">
+          <h6>CREATE RESOURCE</h6>
+          <hr>
+          <form class="form" name="apiForm" ng-submit="addAPI(apiForm)" novalidate>
+            <div class="form-group">
+              <label>Module</label>
+              <select name="module_name" ng-model="api.resource" ng-change="selectModule(api.resource)" class="form-control" required>
+                <option ng-repeat="module in modules" value="{{module._id}}">{{module.name}}</option>
+              </select>
+              <p class="help-block" ng-show="apiForm.module_name.$error.required && submitted_api" style="color:#a94442;">
+                 Please select a module.
+              </p>
+              <label>Name</label>
+              <input type="text" name="name" class="form-control" ng-model="api.name" required>
+              <p class="help-block" ng-show="apiForm.name.$error.required && submitted_api" style="color:#a94442;">
+                 Please provide resource name.
+              </p>
+              <label>URI</label>
+              <input type="text" name="uri" class="form-control" ng-model="api.uri" required>
+              <p class="help-block" ng-show="apiForm.uri.$error.required && submitted_api" style="color:#a94442;">
+                 Please provide uri of resource.
+              </p>
+            </div>
+            <div class="form-group">
+              <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" name="opt" value="GET" ng-model="opt.get"> GET
+              </label>
+              <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox2" name="opt" value="POST" ng-model="opt.post"> POST
+              </label>
+              <br>
+              <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox3" name="opt" value="PUT" ng-model="opt.put"> PUT
+              </label>
+              <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox4" name="opt" value="DELETE" ng-model="opt.delete"> DEL
+              </label>   
+            </div>
+            <div class="form-group">
+              <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox5" ng-model="api.hidden"> Do you want to keep this resource hidden? 
+              </label>
+            </div>
+            <p class="help-block has-error" ng-show="emptyOpts && submitted_api" style="color:#a94442;">
+              Please specify the endpoints.
+            </p>
+            <div>
+              <button class="btn btn-inverse btn-lg btn-login" type="submit">
+                Add
+              </button>
+              <br><br>
+              <div class="bg-danger">{{ errorApi }}</div>
+              <div class="bg-danger" ng-if="successResource">New resource is created.</div>
+            </div>
+          </form>
+        </div>

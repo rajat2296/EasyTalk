@@ -1,0 +1,22 @@
+<div class="card col-sm-6">
+          <h6>CREATE MODULE/API</h6>
+          <hr>
+          <form class="form" name="moduleForm" ng-submit="addModule(moduleForm, mod_name);" novalidate>
+            <div class="form-group">
+              <label>Name</label>
+              <input type="name" name="name" class="form-control" ng-model="mod_name" required>
+              {{module_name}}
+              <p class="help-block" ng-show="moduleForm.name.$error.required && submitted_module" style="color:#a94442;">
+                 Please provide API name.
+              </p>
+            </div>
+            <div>
+              <button class="btn btn-inverse btn-lg btn-login" type="submit">
+                Add
+              </button>
+              <br><br>
+              <div class="bg-danger">{{errorModule}}</div>
+              <div class="bg-success" ng-if="successModule">New module is created.</div>
+            </div>
+          </form>
+        </div>

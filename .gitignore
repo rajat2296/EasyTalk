@@ -1,0 +1,12 @@
+node_modules
+public
+.tmp
+.idea
+client/bower_components
+dist
+/server/config/local.env.js
+/server/config/environment
+user_info.log
+user_error.log
+api_info.log
+api_error.log
